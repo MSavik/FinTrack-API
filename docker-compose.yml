@@ -10,6 +10,7 @@ services:
       POSTGRES_USER: finuser
       POSTGRES_PASSWORD: finpassword
       PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_HOST_AUTH_METHOD: trust # for development only!
     ports:
       - "5432:5432"
     volumes:
@@ -17,15 +18,17 @@ services:
     networks:
       - fintrack-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fuser -d fintrack_db"]
+      test: ["CMD-SHELL", "pg_isready -U finuser -d fintrack_db"]
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 5s
     deploy:
       resources:
         limits:
           cpus: '1'
           memory: 1GB
+    command: [ "postgres", "-c", "listen_addresses=*" ]
 
   pgadmin:
     image: dpage/pgadmin4:latest

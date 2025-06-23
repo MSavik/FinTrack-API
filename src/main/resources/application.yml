@@ -13,6 +13,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+#      ddl-auto: none
     show-sql: false
     properties:
       hibernate:
@@ -37,6 +38,11 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: 86400000 # 24 hours
 
 management:
   endpoints:
@@ -74,6 +80,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+#      ddl-auto: none
     show-sql: true
 
   sql:
@@ -89,10 +96,15 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+#      ddl-auto: none
     show-sql: false
 
 logging:
   level:
-    org.springframework.web: INFO
+#    org.springframework.web: INFO
+#    org.hibernate.SQL: DEBUG
+#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.zaxxer.hikari: DEBUG
+    org.postgresql: TRACE
+    com.fintrack.fintrack_api.security: DEBUG
