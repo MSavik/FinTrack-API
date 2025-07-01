@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -83,6 +85,12 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(BAD_REQUEST, e.getMessage());
         problemDetail.setTitle("Method argument not valid.");
         problemDetail.setType(URI.create(""));
+
+        Map<String, String> errors = new LinkedHashMap<>();
+        e.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage()));
+
+        problemDetail.setProperty("errors", errors);
 
         return ResponseEntity.status(problemDetail.getStatus())
                 .body(problemDetail);

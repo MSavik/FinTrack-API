@@ -1,5 +1,6 @@
 package com.fintrack.fintrack_api.security;
 
+import com.fintrack.fintrack_api.model.enums.Role;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -45,6 +46,8 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(AUTH_WHITE_LIST).permitAll()
+                        .requestMatchers("/api/users/profile").authenticated()
+                        .requestMatchers("/api/users/**").hasAuthority(Role.ADMIN.getValue())
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(authenticationEntryPoint()))

@@ -2,7 +2,7 @@ package com.fintrack.fintrack_api.dto.response;
 
 import java.util.List;
 
-public record JwtResponse(
+public record JwtResponseDTO(
         String token,
         String type,
         String email,
