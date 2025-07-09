@@ -47,7 +47,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(AUTH_WHITE_LIST).permitAll()
                         .requestMatchers("/api/users/profile").authenticated()
-                        .requestMatchers("/api/users/**").hasAuthority(Role.ADMIN.getValue())
+                        .requestMatchers(
+                                "/api/users/**",
+                                "/api/accounts/all"
+                        ).hasAuthority(Role.ADMIN.getValue())
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(authenticationEntryPoint()))

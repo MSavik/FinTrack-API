@@ -16,6 +16,10 @@ public class UserPrincipal implements UserDetails {
 
     private final Users user;
 
+    public Long getId() {
+        return user.getId();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return user.getRoles().stream()
