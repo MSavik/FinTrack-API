@@ -6,7 +6,9 @@ import com.fintrack.fintrack_api.dto.request.UpdateAccountRequestDTO;
 import com.fintrack.fintrack_api.dto.response.AccountResponseDTO;
 import com.fintrack.fintrack_api.exception.AccountNotFoundException;
 import com.fintrack.fintrack_api.exception.InvalidAccountOperationException;
+import com.fintrack.fintrack_api.mapper.AccountMapper;
 import com.fintrack.fintrack_api.model.Account;
+import com.fintrack.fintrack_api.model.Users;
 import com.fintrack.fintrack_api.repository.AccountRepository;
 import com.fintrack.fintrack_api.repository.UserRepository;
 import com.fintrack.fintrack_api.security.UserPrincipal;
@@ -19,6 +21,7 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,38 +29,51 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
+    private final AccountMapper accountMapper;
 
-    public List<Account> getAllActiveUserAccounts(UserPrincipal currentUser) {
-        return accountRepository.findActiveAccountsByUser(
-                currentUser.getUser());
+    public List<AccountResponseDTO> getAllActiveUserAccounts(UserPrincipal currentUser) {
+        List<Account> accounts = accountRepository.findActiveAccountsByUser(currentUser.getUser());
+        return accounts.stream()
+                .map(accountMapper::toAccountResponseDTO)
+                .collect(Collectors.toList());
     }
 
-    public Account getActiveAccountById(Long accountId, UserPrincipal currentUser) {
-        return accountRepository.findActiveAccountByIdAndUser(
+    public AccountResponseDTO getActiveAccountById(Long accountId, UserPrincipal currentUser) {
+        Account account = accountRepository.findActiveAccountByIdAndUser(
                         accountId,
                         currentUser.getUser())
                 .orElseThrow(() -> new AccountNotFoundException("Account with ID " + accountId + " not found"));
+        return accountMapper.toAccountResponseDTO(account);
     }
 
     @Transactional
-    public Account createAccount(Account account, UserPrincipal currentUser) {
+    public AccountResponseDTO createAccount(CreateAccountRequestDTO accountRequest, UserPrincipal currentUser) {
+        Account account = accountMapper.toAccount(accountRequest);
         validateAccountBalance(account);
 
         account.setUser(currentUser.getUser());
-        return accountRepository.save(account);
+        return accountMapper.toAccountResponseDTO(
+                accountRepository.save(account));
     }
 
     @Transactional
-    public Account updateAccount(Long accountId, Account accountUpdate, UserPrincipal currentUser) {
-        Account existingAccount = getActiveAccountById(accountId, currentUser);
-        existingAccount.setName(accountUpdate.getName());
+    public AccountResponseDTO updateAccount(Long accountId, UpdateAccountRequestDTO accountUpdate, UserPrincipal currentUser) {
+        Users user = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + currentUser.getUsername()));
+        Account existingAccount = accountRepository.findActiveAccountByIdAndUser(accountId, user)
+                .orElseThrow(() -> new AccountNotFoundException("Account with ID " + accountId + " not found"));
+        existingAccount.setName(accountUpdate.name());
 
-        return accountRepository.save(existingAccount);
+        return accountMapper.toAccountResponseDTO(
+                accountRepository.save(existingAccount));
     }
 
     @Transactional
     public void deactivateAccount(Long accountId, UserPrincipal currentUser) {
-        Account account = getActiveAccountById(accountId, currentUser);
+        Users user = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + currentUser.getUsername()));
+        Account account = accountRepository.findActiveAccountByIdAndUser(accountId, user)
+                .orElseThrow(() -> new AccountNotFoundException("Account with ID " + accountId + " not found"));
         account.setStatus(Account.AccountStatus.INACTIVE);
         accountRepository.save(account);
     }
@@ -80,7 +96,7 @@ public class AccountService {
                 filter.type(),
                 filter.status(),
                 pageable
-        ).map(this::convertToResponse);
+        ).map(accountMapper::toAccountResponseDTO);
     }
 
     private void validateAccountBalance(Account account) {
@@ -95,32 +111,4 @@ public class AccountService {
                     "Balance cannot be negative for CHECKING/SAVINGS accounts");
         }
     }
-
-    public AccountResponseDTO convertToResponse(Account account) {
-        return AccountResponseDTO.builder()
-                .id(account.getId())
-                .name(account.getName())
-                .type(account.getType())
-                .balance(account.getBalance())
-                .currency(account.getCurrency())
-                .status(account.getStatus())
-                .userEmail(account.getUser().getEmail())
-                .createdAt(account.getCreatedAt())
-                .build();
-    }
-
-    public Account convertToEntity(CreateAccountRequestDTO accountRequest) {
-        return Account.builder()
-                .name(accountRequest.name())
-                .type(accountRequest.type())
-                .currency(accountRequest.currency())
-                .build();
-    }
-
-    public Account convertToEntity(UpdateAccountRequestDTO accountRequest) {
-        return Account.builder()
-                .name(accountRequest.name())
-                .build();
-    }
-
 }

@@ -1,12 +1,13 @@
 package com.fintrack.fintrack_api.service;
 
 import com.fintrack.fintrack_api.dto.request.UpdateProfileRequestDTO;
-import com.fintrack.fintrack_api.dto.response.AdminUserResponseDTO;
+import com.fintrack.fintrack_api.dto.response.AdminUserProfileResponseDTO;
 import com.fintrack.fintrack_api.dto.response.UserProfileResponseDTO;
+import com.fintrack.fintrack_api.mapper.UserMapper;
 import com.fintrack.fintrack_api.model.Users;
 import com.fintrack.fintrack_api.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,11 +15,12 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserService {
 
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     public Users registerUser(Users user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -30,7 +32,7 @@ public class UserService {
     }
 
     public UserProfileResponseDTO getCurrentUserProfile(Users user) {
-        return convertToProfileResponse(user);
+        return userMapper.toUserProfileResponseDTO(user);
     }
 
     public UserProfileResponseDTO updateCurrentUserProfile(Users user, UpdateProfileRequestDTO request) {
@@ -39,14 +41,14 @@ public class UserService {
         user.setPhoneNumber(request.phoneNumber());
 
         user = userRepository.save(user);
-        return convertToProfileResponse(user);
+        return userMapper.toUserProfileResponseDTO(user);
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    public AdminUserResponseDTO getUserById(Long id) {
+    public AdminUserProfileResponseDTO getUserById(Long id) {
         Users user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
-        return convertToAdminResponse(user);
+        return userMapper.toAdminUserResponseDTO(user);
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -55,26 +57,5 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         user.setEnabled(false);
         userRepository.save(user);
-    }
-
-    private UserProfileResponseDTO convertToProfileResponse(Users user) {
-        return new UserProfileResponseDTO(
-                user.getId(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getPhoneNumber(),
-                user.getCreatedAt(),
-                user.getUpdatedAt()
-        );
-    }
-
-    private AdminUserResponseDTO convertToAdminResponse(Users user) {
-        UserProfileResponseDTO profileResponse = convertToProfileResponse(user);
-        return new AdminUserResponseDTO(
-                profileResponse,
-                user.getRoles(),
-                user.isEnabled()
-        );
     }
 }

@@ -18,7 +18,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/accounts")
@@ -28,35 +27,28 @@ public class AccountController {
     private final AccountService accountService;
 
     @GetMapping
-    public List<AccountResponseDTO> getAllActiveAccounts(@AuthenticationPrincipal UserPrincipal currentUser) {
-        return accountService.getAllActiveUserAccounts(currentUser).stream()
-                .map(accountService::convertToResponse)
-                .collect(Collectors.toList());
+    public ResponseEntity<List<AccountResponseDTO>> getAllActiveAccounts(@AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(accountService.getAllActiveUserAccounts(currentUser));
     }
 
     @GetMapping("/{id}")
-    public AccountResponseDTO getActiveAccountById(@PathVariable Long id,
+    public ResponseEntity<AccountResponseDTO> getActiveAccountById(@PathVariable Long id,
                                                 @AuthenticationPrincipal UserPrincipal currentUser) {
-        return accountService.convertToResponse(
-                accountService.getActiveAccountById(id, currentUser));
+        return ResponseEntity.ok(accountService.getActiveAccountById(id, currentUser));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public AccountResponseDTO createAccount(@RequestBody CreateAccountRequestDTO accountRequest,
+    public ResponseEntity<AccountResponseDTO> createAccount(@RequestBody CreateAccountRequestDTO accountRequest,
                                          @AuthenticationPrincipal UserPrincipal currentUser) {
-        Account account = accountService.convertToEntity(accountRequest);
-        return accountService.convertToResponse(
-                accountService.createAccount(account, currentUser));
+        return ResponseEntity.ok(accountService.createAccount(accountRequest, currentUser));
     }
 
     @PutMapping("/{id}")
-    public AccountResponseDTO updateAccount(@PathVariable Long id,
+    public ResponseEntity<AccountResponseDTO> updateAccount(@PathVariable Long id,
                                             @RequestBody UpdateAccountRequestDTO accountRequest,
                                             @AuthenticationPrincipal UserPrincipal currentUser) {
-        Account accountUpdate = accountService.convertToEntity(accountRequest);
-        return accountService.convertToResponse(
-                accountService.updateAccount(id, accountUpdate, currentUser));
+        return ResponseEntity.ok(accountService.updateAccount(id, accountRequest, currentUser));
     }
 
     @DeleteMapping("/{id}")
