@@ -43,7 +43,7 @@ public class Users {
     private String lastName;
 
     @Column(nullable = false, unique = true)
-    @Pattern(regexp = "^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\\s\\./0-9]*$",
+    @Pattern(regexp = "^\\+[1-9]\\d{6,14}$",
             message = "Phone number should be valid")
     private String phoneNumber;
 

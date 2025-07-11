@@ -10,7 +10,7 @@ public record UpdateProfileRequestDTO(
         @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
         String lastName,
 
-        @Pattern(regexp = "^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\\s\\./0-9]*$", message = "Phone number should be valid")
+        @Pattern(regexp = "^\\+[1-9]\\d{6,14}$", message = "Phone number should be valid")
         String phoneNumber
 ) {
 }

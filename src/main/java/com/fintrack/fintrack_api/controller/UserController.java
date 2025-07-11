@@ -31,6 +31,7 @@ public class UserController {
         user.setPassword(request.password());
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
+        user.setPhoneNumber(request.phoneNumber());
         user.setEnabled(true);
         user.setRoles(List.of(Role.USER.getValue()));
 
