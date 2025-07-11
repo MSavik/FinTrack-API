@@ -29,6 +29,9 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true, length = 16)
+    private String accountNumber = "FTSS202500001558";
+
     @Column(nullable = false)
     private String name;
 

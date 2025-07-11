@@ -160,7 +160,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccountNotFoundException.class)
     private ResponseEntity<ProblemDetail> handleAccountNotFoundException(AccountNotFoundException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(NOT_FOUND, e.getMessage());
-        problemDetail.setTitle("Invalid account ID in requests.");
+        problemDetail.setTitle("Invalid account identifier in requests.");
         problemDetail.setType(URI.create(""));
 
         return ResponseEntity.status(problemDetail.getStatus())

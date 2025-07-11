@@ -13,6 +13,7 @@ public interface AccountMapper {
     AccountResponseDTO toAccountResponseDTO(Account account);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "accountNumber", ignore = true)
     @Mapping(target = "balance", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "user", ignore = true)
@@ -21,6 +22,7 @@ public interface AccountMapper {
     Account toAccount(CreateAccountRequestDTO accountRequest);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "accountNumber", ignore = true)
     @Mapping(target = "type", ignore = true)
     @Mapping(target = "balance", ignore = true)
     @Mapping(target = "currency", ignore = true)

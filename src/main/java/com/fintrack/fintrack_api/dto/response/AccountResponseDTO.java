@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Builder
 public record AccountResponseDTO(
         Long id,
+        String accountNumber,
         String name,
         Account.AccountType type,
         BigDecimal balance,

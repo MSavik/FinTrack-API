@@ -31,10 +31,16 @@ public class AccountController {
         return ResponseEntity.ok(accountService.getAllActiveUserAccounts(currentUser));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<AccountResponseDTO> getActiveAccountById(@PathVariable Long id,
                                                 @AuthenticationPrincipal UserPrincipal currentUser) {
         return ResponseEntity.ok(accountService.getActiveAccountById(id, currentUser));
+    }
+
+    @GetMapping("/accountNumber/{accountNumber}")
+    public ResponseEntity<AccountResponseDTO> getActiveAccountByAccountNumber(@PathVariable String accountNumber,
+                                                                   @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(accountService.getActiveAccountByAccountNumber(accountNumber, currentUser));
     }
 
     @PostMapping
@@ -44,18 +50,32 @@ public class AccountController {
         return ResponseEntity.ok(accountService.createAccount(accountRequest, currentUser));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<AccountResponseDTO> updateAccount(@PathVariable Long id,
+    @PutMapping("/id/{id}")
+    public ResponseEntity<AccountResponseDTO> updateAccountById(@PathVariable Long id,
                                             @RequestBody UpdateAccountRequestDTO accountRequest,
                                             @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(accountService.updateAccount(id, accountRequest, currentUser));
+        return ResponseEntity.ok(accountService.updateAccountById(id, accountRequest, currentUser));
     }
 
-    @DeleteMapping("/{id}")
+    @PutMapping("/accountNumber/{accountNumber}")
+    public ResponseEntity<AccountResponseDTO> updateAccountByAccountNumber(@PathVariable String accountNumber,
+                                                            @RequestBody UpdateAccountRequestDTO accountRequest,
+                                                            @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(accountService.updateAccountByAccountNumber(accountNumber, accountRequest, currentUser));
+    }
+
+    @DeleteMapping("/id/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deactivateAccount(@PathVariable Long id,
+    public void deactivateAccountById(@PathVariable Long id,
                                   @AuthenticationPrincipal UserPrincipal currentUser) {
-        accountService.deactivateAccount(id, currentUser);
+        accountService.deactivateAccountById(id, currentUser);
+    }
+
+    @DeleteMapping("/accountNumber/{accountNumber}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deactivateAccountByAccountNumber(@PathVariable String accountNumber,
+                                  @AuthenticationPrincipal UserPrincipal currentUser) {
+        accountService.deactivateAccountByAccountNumber(accountNumber, currentUser);
     }
 
     @GetMapping("/all")
@@ -64,6 +84,7 @@ public class AccountController {
             @RequestParam(required = false) String email,
             @RequestParam(required = false) Account.AccountType type,
             @RequestParam(required = false) Account.AccountStatus status,
+            @RequestParam(required = false) String accountNumber,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Max(100) int size) {
 
@@ -71,6 +92,7 @@ public class AccountController {
                 .email(email)
                 .type(type)
                 .status(status)
+                .accountNumber(accountNumber)
                 .page(page)
                 .size(size)
                 .build();

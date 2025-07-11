@@ -30,6 +30,7 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final AccountMapper accountMapper;
+    private final AccountNumberGeneratorService accountNumberGeneratorService;
 
     public List<AccountResponseDTO> getAllActiveUserAccounts(UserPrincipal currentUser) {
         List<Account> accounts = accountRepository.findActiveAccountsByUser(currentUser.getUser());
@@ -46,18 +47,27 @@ public class AccountService {
         return accountMapper.toAccountResponseDTO(account);
     }
 
+    public AccountResponseDTO getActiveAccountByAccountNumber(String accountNumber, UserPrincipal currentUser) {
+        Account account = accountRepository.findActiveAccountByAccountNumberAndUser(
+                        accountNumber,
+                        currentUser.getUser())
+                .orElseThrow(() -> new AccountNotFoundException("Account with account number " + accountNumber + " not found"));
+        return accountMapper.toAccountResponseDTO(account);
+    }
+
     @Transactional
     public AccountResponseDTO createAccount(CreateAccountRequestDTO accountRequest, UserPrincipal currentUser) {
         Account account = accountMapper.toAccount(accountRequest);
         validateAccountBalance(account);
 
         account.setUser(currentUser.getUser());
+        account.setAccountNumber(accountNumberGeneratorService.generateAccountNumber(accountRequest.type()));
         return accountMapper.toAccountResponseDTO(
                 accountRepository.save(account));
     }
 
     @Transactional
-    public AccountResponseDTO updateAccount(Long accountId, UpdateAccountRequestDTO accountUpdate, UserPrincipal currentUser) {
+    public AccountResponseDTO updateAccountById(Long accountId, UpdateAccountRequestDTO accountUpdate, UserPrincipal currentUser) {
         Users user = userRepository.findByEmail(currentUser.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + currentUser.getUsername()));
         Account existingAccount = accountRepository.findActiveAccountByIdAndUser(accountId, user)
@@ -69,11 +79,33 @@ public class AccountService {
     }
 
     @Transactional
-    public void deactivateAccount(Long accountId, UserPrincipal currentUser) {
+    public AccountResponseDTO updateAccountByAccountNumber(String accountNumber, UpdateAccountRequestDTO accountUpdate, UserPrincipal currentUser) {
+        Users user = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + currentUser.getUsername()));
+        Account existingAccount = accountRepository.findActiveAccountByAccountNumberAndUser(accountNumber, user)
+                .orElseThrow(() -> new AccountNotFoundException("Account with account number " + accountNumber + " not found"));
+        existingAccount.setName(accountUpdate.name());
+
+        return accountMapper.toAccountResponseDTO(
+                accountRepository.save(existingAccount));
+    }
+
+    @Transactional
+    public void deactivateAccountById(Long accountId, UserPrincipal currentUser) {
         Users user = userRepository.findByEmail(currentUser.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + currentUser.getUsername()));
         Account account = accountRepository.findActiveAccountByIdAndUser(accountId, user)
                 .orElseThrow(() -> new AccountNotFoundException("Account with ID " + accountId + " not found"));
+        account.setStatus(Account.AccountStatus.INACTIVE);
+        accountRepository.save(account);
+    }
+
+    @Transactional
+    public void deactivateAccountByAccountNumber(String accountNumber, UserPrincipal currentUser) {
+        Users user = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + currentUser.getUsername()));
+        Account account = accountRepository.findActiveAccountByAccountNumberAndUser(accountNumber, user)
+                .orElseThrow(() -> new AccountNotFoundException("Account with account number " + accountNumber + " not found"));
         account.setStatus(Account.AccountStatus.INACTIVE);
         accountRepository.save(account);
     }
@@ -95,6 +127,7 @@ public class AccountService {
                 StringUtils.hasText(filter.email()) ? filter.email() : null,
                 filter.type(),
                 filter.status(),
+                filter.accountNumber(),
                 pageable
         ).map(accountMapper::toAccountResponseDTO);
     }

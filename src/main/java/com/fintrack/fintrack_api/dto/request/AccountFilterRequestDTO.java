@@ -10,6 +10,7 @@ public record AccountFilterRequestDTO(
         String email,
         Account.AccountType type,
         Account.AccountStatus status,
+        String accountNumber,
         @Min(0)
         Integer page,
         @Max(100)
