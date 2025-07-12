@@ -8,6 +8,8 @@ import com.fintrack.fintrack_api.model.Users;
 import com.fintrack.fintrack_api.model.enums.Role;
 import com.fintrack.fintrack_api.service.AuthenticationService;
 import com.fintrack.fintrack_api.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "User Controller", description = "APIs for user management")
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -24,6 +27,7 @@ public class UserController {
     private final UserService userService;
     private final AuthenticationService authenticationService;
 
+    @Operation(summary = "Register user profile")
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid UserRegistrationRequestDTO request) {
         Users user = new Users();
@@ -39,12 +43,14 @@ public class UserController {
         return ResponseEntity.ok(savedUser);
     }
 
+    @Operation(summary = "Get current user profile")
     @GetMapping("/profile")
     public ResponseEntity<UserProfileResponseDTO> getCurrentUserProfile() {
         Users currentUser = authenticationService.getCurrentUser();
         return ResponseEntity.ok(userService.getCurrentUserProfile(currentUser));
     }
 
+    @Operation(summary = "Update current user profile")
     @PutMapping("/profile")
     public ResponseEntity<UserProfileResponseDTO> updateCurrentUserProfile(
             @Valid @RequestBody UpdateProfileRequestDTO request) {
@@ -52,12 +58,14 @@ public class UserController {
         return ResponseEntity.ok(userService.updateCurrentUserProfile(currentUser, request));
     }
 
+    @Operation(summary = "Get user profile by user ID (ADMIN only)")
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<AdminUserProfileResponseDTO> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    @Operation(summary = "Deactivate user profile by user ID (ADMIN only)")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deactivateUser(@PathVariable Long id) {

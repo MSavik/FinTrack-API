@@ -1,6 +1,8 @@
 package com.fintrack.fintrack_api.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,6 +35,7 @@ public class Account {
     private String accountNumber = "FTSS202500001558";
 
     @Column(nullable = false)
+    @Size(min = 2, max = 50, message = "Account name must be between 2 and 50 characters")
     private String name;
 
     @Enumerated(EnumType.STRING)
@@ -43,6 +46,8 @@ public class Account {
     private BigDecimal balance = BigDecimal.ZERO;
 
     @Column(nullable = false, length = 3)
+    @Size(min = 3, max = 3, message = "Currency code must have exactly 3 characters")
+    @Pattern(regexp = "^[A-Z]*$", message = "Currency code must contain only uppercase letters")
     private String currency;
 
     @Enumerated(EnumType.STRING)
