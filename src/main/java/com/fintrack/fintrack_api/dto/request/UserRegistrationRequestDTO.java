@@ -7,7 +7,9 @@ import jakarta.validation.constraints.Size;
 
 public record UserRegistrationRequestDTO(
     @Email String email,
-    @Size(min = 8) String password,
+
+    @Size(min = 8, max = 128, message = "Password must be between 8 and 128 characters")
+    String password,
 
     @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
     @NotBlank String firstName,

@@ -115,6 +115,16 @@ public class GlobalExceptionHandler {
 
     /* Authentication and User Management */
 
+    @ExceptionHandler(UserNotFoundException.class)
+    private ResponseEntity<ProblemDetail> handleUserNotFoundException(UserNotFoundException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(NOT_FOUND, e.getMessage());
+        problemDetail.setTitle("Invalid user identifier.");
+        problemDetail.setType(URI.create(""));
+
+        return ResponseEntity.status(problemDetail.getStatus())
+                .body(problemDetail);
+    }
+
     @ExceptionHandler(UserAlreadyExistsException.class)
     private ResponseEntity<ProblemDetail> handleUserAlreadyExistsException(UserAlreadyExistsException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(CONFLICT, e.getMessage());
